@@ -23,7 +23,7 @@ connectDb();
 // (async () => {
 //   try {
 //     await mongoose.connect(
-//       `mongodb+srv://gagandeep:PxA7GS0ozfNRNsgx@db.vwgxpex.mongodb.net/?retryWrites=true&w=majority/${DB_NAME}`
+//       `${process.env.MONGODB_URI}/${DB_NAME}`
 //     );
 //     app.on("error", (error) => {
 //       console.log("error", error);
