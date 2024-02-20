@@ -25,4 +25,10 @@ app.use(express.static("public"));
 // For cookies -> we can access and set browser cookies from server.
 // Secure cookies to user browser -> only browser can read and set.
 
-app.use(cookieParser())
+app.use(cookieParser());
+
+// Routes Import
+import userRoutes from "../src/routes/user.routes.js";
+
+// Routes Declare
+app.use("/api/v1/user", userRoutes);

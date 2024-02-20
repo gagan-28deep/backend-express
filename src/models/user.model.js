@@ -61,7 +61,7 @@ const userSchema = new Schema(
 userSchema.pre("save", async function (next) {
   // Only change password if the password is modified , else return next
   if (!this.isModified("password")) return next();
-  this.password = bcrypt.hash(this.password, 10);
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
 // To check if the password returning is correct or not
