@@ -1,1 +1,1 @@
-export const DB_NAME = "express"
+export const DB_NAME = "db"

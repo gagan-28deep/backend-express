@@ -1,6 +1,13 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const parentDir = path.resolve(__dirname, '../../');
+
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -15,10 +22,11 @@ const uploadOnCloudinary = async (localFilePath) => {
       resource_type: "auto",
     });
     // File successfully uploaded
-    console.log("File successfully uploaded on cloudinary", response.url);
+    // console.log("File successfully uploaded on cloudinary", response.url);
+    fs.unlinkSync(`${parentDir}/${localFilePath}`);
     return response;
   } catch (error) {
-    fs.unlinkSync(localFilePath);
+    fs.unlinkSync(`${parentDir}/${localFilePath}`);
     // Remove the locally saved file , as the operation on cloudinary upload failed
     return null;
   }
