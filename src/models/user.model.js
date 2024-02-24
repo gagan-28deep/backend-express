@@ -65,6 +65,7 @@ userSchema.pre("save", async function (next) {
 });
 
 // To check if the password returning is correct or not
+// These are methods which are there in our user instance (what we get as return after hiting mongoDB , response object)
 userSchema.methods.isPasswordCorrect = async function (password) {
   // password -> who have called the method -> clear text password
   // this.password -> compare with the current password in the db -> encrypted one

@@ -1,0 +1,15 @@
+Access token and Refresh token -> Both are kind of same , refresh token is longed lived
+
+1. Till we have Access token , we can access (authorised) any feature which require authorisation.
+
+-> Refresh token : we save in db and also send to the user : 
+
+-> when the access token expires , hit a url if your refresh token and refresh token in the db is same , you are authorised
+and from the server you get a new access token 
+
+
+::: FRONT END
+-> if we have a request (not authorised)
+
+we can tell user to go on a route to refresh access token
+(get new token)

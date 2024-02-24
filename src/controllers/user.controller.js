@@ -3,6 +3,24 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+
+const generateRefreshAndAccessToken = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    const accessToken = await user?.generateAccessToken();
+    const refreshToken = await user?.generateRefreshToken();
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something Went Wrong While Generating Refresh And Access Token"
+    );
+  }
+};
+
 const registerUser = asyncHandler(async (req, res) => {
   //  Get user details from front-end
   // Validation (if there is any empty details)
@@ -74,4 +92,91 @@ const registerUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, createdUser, "User Created Successfully"));
 });
 
-export { registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+  // Get data from req body
+  // find user based on email or username
+  //Check password
+  //send access and refresh token in cookies
+
+  const { username, email, password } = req.body;
+
+  if (!username && !email) {
+    throw new ApiError(400, "Username or Email is required");
+  }
+
+  if (!password) {
+    throw new ApiError(400, "Password is required");
+  }
+
+  let user = await User.findOne({
+    $or: [
+      { username },
+      {
+        email,
+      },
+    ],
+  });
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
+  }
+
+  const isPasswordValid = await user?.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid User Credentials");
+  }
+
+  const { accessToken, refreshToken } = await generateRefreshAndAccessToken(user?._id);
+
+  // Here we can either have another db query to get refresh and access token , or we can modify the existing (User) object
+
+  const loggedInUser = await User.findById(user?._id).select(
+    "-password -refreshToken"
+  );
+
+
+  // Cookies should only be modified by the server, not from the front-end
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: loggedInUser,
+          accessToken,
+          refreshToken,
+        },
+        "User Logged In Successfully"
+      )
+    );
+
+});
+
+const logOutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $set: {
+        refreshToken: undefined,
+      },
+    },
+    { new: true }
+  );
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User Logged Out Successfully"));
+});
+
+export { registerUser, loginUser, logOutUser };
